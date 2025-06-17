@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>prettySNow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the neon/rainbow effect */
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .rainbow-border {
+            position: relative;
+            background: #121212; /* Darker background */
+            color: #f3f4f6; /* Lighter text base */
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 1px;
+            overflow: hidden;
+        }
+        .rainbow-border::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                from 180deg at 50% 50%,
+                #ff00ff, #00ffff, #ffff00, #ff00ff
+            );
+            animation: rotate 4s linear infinite;
+            z-index: 1;
+        }
+        .rainbow-border > * {
+            position: relative;
+            z-index: 2;
+            background: #121212; /* Darker background for all direct children */
+            border-radius: 0.70rem; /* Slightly smaller than parent */
+        }
+        .rainbow-text {
+            background: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        /* Ensure contenteditable placeholder is visible and lighter */
+        [contenteditable]:empty:before {
+            content: attr(placeholder);
+            pointer-events: none;
+            display: block;
+            color: #9ca3af; /* gray-400, lighter placeholder */
+        }
+        /* Specific styling for the output textarea */
+        #output-area {
+            background-color: #121212 !important; /* Ensure dark background */
+            color: #9ca3af; /* Dimmer text (gray-400) */
+        }
+
+        /* Easter Egg Styles */
+        #easter-egg-trigger {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            z-index: 999;
+        }
+        #easter-egg-content {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.5s ease-out 3s, transform 0.5s ease-out 3s;
+            pointer-events: none;
+        }
+        #easter-egg-trigger:hover + #easter-egg-content {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        #easter-egg-text {
+            color: #f0f0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            margin-bottom: 5px;
+        }
+
+    </style>
+</head>
+<body class="bg-black text-gray-100 font-sans p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto space-y-8">
+        <!-- Header -->
+        <header class="text-center">
+            <h1 class="text-4xl md:text-5xl font-bold rainbow-text mb-2">prettySNow</h1>
+            <p class="text-gray-300">Paste rich text below, and I'll convert it to ServiceNow-ready HTML.</p>
+        </header>
+
+        <!-- Main App Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Input Panel -->
+            <div class="space-y-4">
+                <label for="input-area" class="text-lg font-semibold text-gray-200">1. Paste Your Content Here</label>
+                <div class="rainbow-border">
+                    <div id="input-area"
+                         contenteditable="true"
+                         placeholder="Paste content from Word, Outlook, etc..."
+                         class="w-full h-96 p-4 overflow-y-auto focus:outline-none leading-relaxed">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Panel -->
+            <div class="space-y-4">
+                <label for="output-area" class="text-lg font-semibold text-gray-200">2. Copy Your ServiceNow Code</label>
+                <div class="rainbow-border">
+                     <textarea id="output-area"
+                               readonly
+                               placeholder="ServiceNow HTML will appear here..."
+                               class="w-full h-96 p-4 focus:outline-none font-mono text-sm leading-relaxed resize-none"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex justify-center items-center gap-4">
+            <button id="convert-btn" class="px-8 py-3 font-bold text-white bg-gradient-to-r from-purple-600 to-cyan-500 rounded-lg shadow-lg hover:scale-105 transform transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300">
+                Convert to HTML
+            </button>
+            <button id="copy-btn" class="px-8 py-3 font-bold text-gray-800 bg-gray-300 rounded-lg shadow-lg hover:bg-white transform transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-gray-400">
+                Copy to Clipboard
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Image URL Modal -->
+    <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="rainbow-border w-full max-w-lg">
+            <div class="p-8 space-y-6">
+                <h2 class="text-2xl font-bold rainbow-text">Image Detected</h2>
+                <p class="text-gray-400">Please provide the URL for the image. It must be hosted on <code class="bg-gray-800 text-cyan-400 px-1 py-0.5 rounded">uabprod.service-now.com</code>.</p>
+                
+                <div class="space-y-2">
+                    <label for="image-url-input" class="font-semibold text-gray-200">Image URL</label>
+                    <input type="text" id="image-url-input" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                    <p id="url-status" class="text-sm h-5"></p>
+                </div>
+
+                <div class="flex items-start gap-4">
+                     <!-- Action buttons for the modal -->
+                    <div class="flex-grow space-x-2">
+                        <button id="check-url-btn" class="px-4 py-2 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">Check URL</button>
+                        <button id="confirm-url-btn" class="px-4 py-2 font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors hidden">Confirm</button>
+                        <button id="cancel-url-btn" class="px-4 py-2 font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">Cancel Image</button>
+                    </div>
+                    <!-- Image preview area -->
+                    <div class="w-32 h-32 flex items-center justify-center bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg">
+                        <img id="image-preview" src="" alt="Preview" class="max-w-full max-h-full hidden">
+                        <span id="preview-placeholder" class="text-gray-500 text-xs text-center">Image Preview</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Custom message box -->
+    <div id="message-box" class="hidden fixed bottom-8 right-8 bg-gradient-to-r from-purple-600 to-cyan-500 text-white py-3 px-6 rounded-lg shadow-2xl text-lg font-semibold z-50">
+        Copied to clipboard!
+    </div>
+
+    <!-- Easter Egg Elements -->
+    <div id="easter-egg-trigger"></div>
+    <div id="easter-egg-content">
+        <div id="easter-egg-text">Kyle made this</div>
+    </div>
+
+
+    <script>
+        // --- DOM Element References ---
+        const inputArea = document.getElementById('input-area');
+        const outputArea = document.getElementById('output-area');
+        const convertBtn = document.getElementById('convert-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const messageBox = document.getElementById('message-box');
+
+        // Modal elements
+        const imageModal = document.getElementById('image-modal');
+        const imageUrlInput = document.getElementById('image-url-input');
+        const urlStatus = document.getElementById('url-status');
+        const checkUrlBtn = document.getElementById('check-url-btn');
+        const confirmUrlBtn = document.getElementById('confirm-url-btn');
+        const cancelUrlBtn = document.getElementById('cancel-url-btn');
+        const imagePreview = document.getElementById('image-preview');
+        const previewPlaceholder = document.getElementById('preview-placeholder');
+
+        let currentImageElement = null;
+        let resolveImagePromise = null;
+
+        // --- Core Logic ---
+
+        /**
+         * Main function to trigger the conversion process.
+         */
+        convertBtn.addEventListener('click', async () => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = inputArea.innerHTML;
+            
+            outputArea.value = 'Processing... please wait.';
+
+            try {
+                // Step 1: Force all links to open in a new tab.
+                forceNewTabOnLinks(tempDiv);
+                
+                // Step 2: Handle images sequentially.
+                await handleImages(tempDiv);
+    
+                // Step 3: Process styles and generate final HTML.
+                const finalHtml = processStylesAndGenerateHtml(tempDiv);
+    
+                // Step 4: Set the output.
+                outputArea.value = `[code]\n${finalHtml}`;
+            } catch(error) {
+                if (error) { // Avoid logging null/undefined errors from cancelled promises
+                    console.error("Conversion process was cancelled or failed:", error);
+                }
+                outputArea.value = 'Process cancelled. Please try again.';
+            }
+        });
+        
+        /**
+         * Finds all anchor tags and sets their target to "_blank".
+         * @param {HTMLElement} container - The element containing the pasted content.
+         */
+        function forceNewTabOnLinks(container) {
+            const links = container.querySelectorAll('a');
+            links.forEach(link => {
+                link.setAttribute('target', '_blank');
+            });
+        }
+
+        /**
+         * Finds all images in the content and prompts the user for a valid URL for each.
+         * @param {HTMLElement} container - The element containing the pasted content.
+         */
+        async function handleImages(container) {
+            // Find all images, including those pasted from clipboard (often with src^="data:image")
+            const images = Array.from(container.querySelectorAll('img'));
+            for (const img of images) {
+                // We prompt for all images to ensure they point to the correct SN instance.
+                await promptForImageUrl(img);
+            }
+        }
+
+        /**
+         * Shows a modal to the user to get a valid ServiceNow URL for an image.
+         * Returns a promise that resolves when the user confirms or cancels.
+         * @param {HTMLImageElement} imgElement - The image element to process.
+         * @returns {Promise<void>}
+         */
+        function promptForImageUrl(imgElement) {
+            return new Promise((resolve, reject) => {
+                currentImageElement = imgElement;
+                resolveImagePromise = { resolve, reject };
+
+                // Reset and show the modal
+                imageUrlInput.value = '';
+                urlStatus.textContent = '';
+                urlStatus.className = 'text-sm h-5';
+                imagePreview.src = '';
+                imagePreview.classList.add('hidden');
+                previewPlaceholder.classList.remove('hidden');
+                confirmUrlBtn.classList.add('hidden');
+                imageModal.classList.remove('hidden');
+                imageUrlInput.focus();
+            });
+        }
+        
+        /**
+         * Processes the element styles to decide between inline styles and a <style> block.
+         * @param {HTMLElement} container - The element containing the processed content.
+         * @returns {string} - The final, cleaned HTML string.
+         */
+        function processStylesAndGenerateHtml(container) {
+            const styleCounts = new Map();
+            const elementsWithStyle = container.querySelectorAll('*[style]');
+
+            // 1. Count occurrences of each unique style attribute value.
+            elementsWithStyle.forEach(el => {
+                const styleText = el.style.cssText;
+                if (styleText) {
+                    styleCounts.set(styleText, (styleCounts.get(styleText) || 0) + 1);
+                }
+            });
+
+            // 2. Decide if a <style> block is needed.
+            const needsStyleBlock = Array.from(styleCounts.values()).some(count => count > 2);
+
+            if (needsStyleBlock) {
+                // 3a. Generate a <style> block and replace inline styles with classes.
+                const styleMap = new Map();
+                let styleTagContent = '';
+                let classCounter = 1;
+
+                styleCounts.forEach((count, styleText) => {
+                    // Use the 'bk-' prefix for class names
+                    const className = `bk-style-${classCounter++}`;
+                    styleMap.set(styleText, className);
+                    styleTagContent += `\n    .${className} { ${styleText} }`;
+                });
+
+                elementsWithStyle.forEach(el => {
+                    const styleText = el.style.cssText;
+                    if (styleMap.has(styleText)) {
+                        el.classList.add(styleMap.get(styleText));
+                        el.removeAttribute('style');
+                    }
+                });
+                
+                return `<style>${styleTagContent}\n</style>\n${container.innerHTML}`;
+
+            } else {
+                // 3b. Keep inline styles. Just return the innerHTML.
+                return container.innerHTML;
+            }
+        }
+
+        // --- Modal Event Listeners ---
+
+        checkUrlBtn.addEventListener('click', () => {
+            const url = imageUrlInput.value.trim();
+            const snBaseUrl = 'https://uabprod.service-now.com';
+
+            if (!url) {
+                urlStatus.textContent = 'URL cannot be empty.';
+                urlStatus.className = 'text-sm h-5 text-red-400';
+                confirmUrlBtn.classList.add('hidden');
+                return;
+            }
+
+            if (url.startsWith(snBaseUrl)) {
+                urlStatus.textContent = 'Valid ServiceNow URL format.';
+                urlStatus.className = 'text-sm h-5 text-green-400';
+                imagePreview.src = url;
+                imagePreview.classList.remove('hidden');
+                previewPlaceholder.classList.add('hidden');
+                confirmUrlBtn.classList.remove('hidden');
+            } else {
+                urlStatus.textContent = `URL must start with ${snBaseUrl}`;
+                urlStatus.className = 'text-sm h-5 text-red-400';
+                imagePreview.src = '';
+                imagePreview.classList.add('hidden');
+                previewPlaceholder.classList.remove('hidden');
+                confirmUrlBtn.classList.add('hidden');
+            }
+        });
+
+        confirmUrlBtn.addEventListener('click', () => {
+            if (currentImageElement && resolveImagePromise) {
+                currentImageElement.src = imageUrlInput.value.trim();
+                imageModal.classList.add('hidden');
+                resolveImagePromise.resolve();
+            }
+        });
+
+        cancelUrlBtn.addEventListener('click', () => {
+            if (currentImageElement && resolveImagePromise) {
+                // Remove the image element from the document entirely
+                currentImageElement.remove();
+                imageModal.classList.add('hidden');
+                // Resolve without a value to signify completion of the user's action
+                resolveImagePromise.resolve(); 
+            }
+        });
+
+        // --- Utility Event Listeners ---
+        
+        copyBtn.addEventListener('click', () => {
+            if (outputArea.value) {
+                // Using the older execCommand for max compatibility within iFrames.
+                outputArea.select();
+                document.execCommand('copy');
+
+                // Show confirmation message
+                messageBox.classList.remove('hidden');
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 2000);
+            }
+        });
+
+    </script>
+</body>
+</html>
