@@ -50,14 +50,7 @@
             position: relative; /* For positioning the manual button */
         }
 
-        .header-logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            color: #3a2e2e;
-        }
-        
+        .header-logo { display: flex; align-items: center; justify-content: center; gap: 1rem; color: #3a2e2e; }
         .header-logo h1 {
             font-family: 'Cormorant Garamond', serif;
             font-size: 3rem;
@@ -67,20 +60,12 @@
             color: #3a2e2e;
         }
 
-        .editor-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            min-height: 0;
-        }
-        
+        .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; min-height: 0; }
         .monitor-bezel {
             background: #d8c8b8;
             border: 2px solid #b4a494;
             padding: 1rem;
-            box-shadow: 
-                inset 3px 3px 5px rgba(0, 0, 0, 0.3),
-                inset -2px -2px 5px rgba(255, 255, 255, 0.8);
+            box-shadow: inset 3px 3px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.8);
             border-radius: 6px;
             display: flex;
             flex-direction: column;
@@ -97,56 +82,20 @@
             flex-grow: 1;
         }
         
-        #input-area, #output-area {
-            flex-grow: 1;
-            width: 100%;
-            padding: 1rem;
-            border: none;
-            resize: none;
-            line-height: 1.6;
-            overflow-y: auto;
-        }
-
-        #output-area {
-            background: #282c34;
-            color: #abb2bf;
-            font-family: 'Fira Code', monospace;
-        }
-        
+        #input-area, #output-area { flex-grow: 1; width: 100%; padding: 1rem; border: none; resize: none; line-height: 1.6; overflow-y: auto; }
+        #output-area { background: #282c34; color: #abb2bf; font-family: 'Fira Code', monospace; }
         #input-area:focus, #output-area:focus { outline: none; }
 
-        .editor-toolbar {
-            background-color: #c8b8a8;
-            padding: 8px;
-            border-bottom: 2px solid #b4a494;
-            display: flex; flex-wrap: wrap;
-            align-items: center;
-            flex-shrink: 0;
-        }
+        .editor-toolbar { background-color: #c8b8a8; padding: 8px; border-bottom: 2px solid #b4a494; display: flex; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
         .toolbar-btn, .dropdown-btn {
-            background: #d8c8b8; color: #3a2e2e;
-            border: 2px outset #b4a494;
-            padding: 6px 12px; margin: 2px;
-            cursor: pointer; font-weight: bold;
-            transition: all 0.1s ease-in-out;
-            font-family: 'Inter', sans-serif;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            height: 38px; /* Fixed height for all buttons */
+            background: #d8c8b8; color: #3a2e2e; border: 2px outset #b4a494; padding: 6px 12px; margin: 2px;
+            cursor: pointer; font-weight: bold; transition: all 0.1s ease-in-out; font-family: 'Inter', sans-serif;
+            border-radius: 4px; display: flex; align-items: center; gap: 0.5rem; height: 38px;
         }
-        .toolbar-btn.icon-only {
-            padding: 6px 8px;
-            gap: 0;
-        }
+        .toolbar-btn.icon-only { padding: 6px 8px; gap: 0; }
         .toolbar-btn:active, .dropdown-btn:active { border-style: inset; background: #c8b8a8; }
         .dropdown { position: relative; display: inline-block; }
-        .dropdown-content {
-            display: none; position: absolute; background-color: #d8c8b8;
-            min-width: 160px; z-index: 10; border: 2px outset #b4a494;
-            border-radius: 4px;
-        }
+        .dropdown-content { display: none; position: absolute; background-color: #d8c8b8; min-width: 160px; z-index: 10; border: 2px outset #b4a494; border-radius: 4px; }
         .dropdown-content a { color: #3a2e2e; padding: 12px 16px; text-decoration: none; display: block; font-family: 'Inter', sans-serif; }
         .dropdown-content a:hover { background-color: #c8b8a8; }
         .dropdown:hover .dropdown-content { display: block; }
@@ -189,6 +138,7 @@
         #manual-btn .led { width: 8px; height: 8px; background: #800000; border: 1px solid #3a2e2e; border-radius: 50%; }
         #manual-btn span { font-weight: bold; text-shadow: 1px 1px 1px #fff; }
         #manual-btn:active { border-style: inset; }
+
     </style>
      <style id="sn-styles">
         .sn-editor-preview { background-color: #fff; color: #212529; font-family: 'Helvetica', Arial, sans-serif; }
@@ -359,7 +309,7 @@
         let stripStylesUndoState = '';
         let currentImageElement = null;
         let resolveImagePromise = null;
-        const protectedHeader = `[code]\n<!-- Always TEST ON AN INTERNAL WORK NOTE before use, and after any manual edits. See Kyle (blainek) with issues or questions. -->`;
+        const protectedHeader = `[code]\n<!-- Generated SN-friendly HTML below. Always test before first use, and after any manual edits. See Kyle (blainek) with issues or questions. -->`;
 
         const debounce = (func, delay) => {
             let timeout;
@@ -371,22 +321,7 @@
             isSyncing = true;
             try {
                 const tempDiv = document.createElement('div');
-                // Use a DOM parser to reliably handle node replacement
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(inputArea.innerHTML, 'text/html');
-                doc.body.querySelectorAll('div').forEach(div => {
-                    const p = document.createElement('p');
-                    // Move children, don't use innerHTML to avoid re-parsing
-                    while (div.firstChild) {
-                        p.appendChild(div.firstChild);
-                    }
-                    if (p.innerHTML.trim() === '' || p.innerHTML.trim() === '<br>') {
-                        p.innerHTML = '&nbsp;'; // Use non-breaking space to maintain height
-                    }
-                    div.replaceWith(p);
-                });
-
-                tempDiv.innerHTML = doc.body.innerHTML;
+                tempDiv.innerHTML = inputArea.innerHTML;
                 forceNewTabOnLinks(tempDiv);
                 const rawHtml = tempDiv.innerHTML;
                 const formattedHtml = prettyPrintHtml(rawHtml);
@@ -517,7 +452,7 @@
                 if (el.children.length === 1 && el.firstElementChild.tagName === 'STRONG' && !el.firstElementChild.nextSibling) {
                     replaceTag(el, 'h2');
                 }
-                if ( (el.innerHTML.trim() === '' || el.innerHTML.trim() === '<br>') && el.parentNode) {
+                if ( (el.innerHTML.trim() === '' || el.innerHTML.trim() === '<br>' || el.innerHTML.trim() === '&nbsp;') && el.parentNode) {
                      el.replaceWith(document.createElement('br'));
                 }
             });

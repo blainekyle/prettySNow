@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Inter:wght@400;700&family=Fira+Code&display=swap" rel="stylesheet">
     <style>
         /* --- Retro Hardware Theme --- */
         html, body {
@@ -41,13 +41,11 @@
                 inset -2px -2px 5px rgba(0, 0, 0, 0.2),
                 8px 8px 10px rgba(0, 0, 0, 0.3);
             padding: 1.5rem;
-            width: 1800px; /* Fixed width for 1.8:1 ratio */
-            height: 1000px; /* Fixed height for 1.8:1 ratio */
+            /* width and height are now set dynamically by JavaScript */
             border-radius: 8px;
             display: grid;
             grid-template-rows: auto 1fr auto; 
             gap: 1rem;
-            position: relative; /* For positioning the manual button */
         }
 
         .header-logo {
@@ -69,9 +67,15 @@
 
         .editor-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr; /* Default to 1 column */
             gap: 1.5rem;
             min-height: 0;
+        }
+
+        @media (min-width: 1024px) { /* Tailwind's lg breakpoint */
+            .editor-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
         
         .monitor-bezel {
@@ -150,45 +154,6 @@
         .dropdown-content a { color: #3a2e2e; padding: 12px 16px; text-decoration: none; display: block; font-family: 'Inter', sans-serif; }
         .dropdown-content a:hover { background-color: #c8b8a8; }
         .dropdown:hover .dropdown-content { display: block; }
-
-        /* --- Manual Panel Styles --- */
-        #manual-panel {
-            position: absolute;
-            top: 0;
-            right: -200%; /* Start off-screen */
-            width: 55%;
-            height: 100%;
-            background-color: #d8c8b8;
-            border: 2px solid #b4a494;
-            box-shadow: -8px 0px 15px rgba(0, 0, 0, 0.4);
-            border-radius: 8px;
-            transition: right 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-        }
-        #manual-panel.open { right: 0; }
-
-        .manual-header { padding: 1rem 1.5rem; border-bottom: 2px solid #b4a494; display: flex; justify-content: space-between; align-items: center; }
-        .manual-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 700; color: #006400; }
-        .manual-body { padding: 1.5rem 2rem; overflow-y: auto; flex-grow: 1; }
-        
-        /* Manual Content Styles */
-        .manual-body h2 { font-family: 'Cormorant Garamond', serif; font-weight: 700; border-bottom: 2px solid #b4a494; padding-bottom: 0.5rem; margin-bottom: 1.5rem; color: #006400; font-size: 2rem; margin-top: 2.5rem; }
-        .manual-body p, .manual-body li { line-height: 1.7; margin-bottom: 1rem; }
-        .manual-body ul { list-style-type: square; padding-left: 1.5rem; }
-        .manual-body table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: 0.9rem; }
-        .manual-body th, .manual-body td { border: 1px solid #b4a494; padding: 0.75rem; text-align: left; }
-        .manual-body thead { background-color: #c8b8a8; }
-        .manual-body th { font-weight: 700; }
-        .manual-body code, .manual-body kbd { font-family: 'Fira Code', monospace; background-color: #c8b8a8; padding: 0.1rem 0.4rem; border-radius: 4px; border: 1px solid #b4a494; }
-        .manual-body kbd { display: inline-block; min-width: 24px; text-align: center; font-weight: bold; font-style: normal; }
-
-        /* Turbo Button */
-        #manual-btn { position: absolute; top: 1.5rem; right: 1.5rem; display: flex; align-items: center; gap: 0.5rem; padding: 8px 16px; border: 2px outset #b4a494; background: #d8c8b8; border-radius: 4px; cursor: pointer; }
-        #manual-btn .led { width: 8px; height: 8px; background: #800000; border: 1px solid #3a2e2e; border-radius: 50%; }
-        #manual-btn span { font-weight: bold; text-shadow: 1px 1px 1px #fff; }
-        #manual-btn:active { border-style: inset; }
     </style>
      <style id="sn-styles">
         .sn-editor-preview { background-color: #fff; color: #212529; font-family: 'Helvetica', Arial, sans-serif; }
@@ -206,8 +171,7 @@
     <div class="scaling-container">
         <div class="main-chassis">
             <header class="header-logo"><h1>prettySNow</h1></header>
-            <button id="manual-btn"><span class="led"></span><span>Manual</span></button>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 editor-grid">
+            <div class="editor-grid">
                 <!-- Input Panel -->
                 <div class="monitor-bezel">
                     <div class="crt-screen">
@@ -232,49 +196,6 @@
                 </div>
             </div>
             <div class="flex justify-center mt-4 copy-button-container"><button id="copy-btn" class="toolbar-btn !px-8 !py-3 !text-lg !font-bold">Copy Code</button></div>
-
-            <!-- Manual Panel (Hidden by default) -->
-            <div id="manual-panel">
-                <div class="manual-header">
-                    <h2>User Manual</h2>
-                    <button id="manual-close-btn" class="toolbar-btn icon-only">&times;</button>
-                </div>
-                <div class="manual-body">
-                    <h2>1. Introduction</h2>
-                    <p>Welcome to <code>prettySNow</code>! This tool converts rich text into clean, ServiceNow-compatible HTML.</p>
-                    <p>It features a live, two-way synchronized editor for a real-time preview.</p>
-                    <h2>2. The Interface</h2>
-                    <ul>
-                        <li><strong>Left Panel (Rich Text Editor):</strong> Paste and edit your content here. Styled to match ServiceNow.</li>
-                        <li><strong>Right Panel (Code Editor):</strong> Displays the live, ServiceNow-ready HTML. Edits here sync back.</li>
-                        <li><strong>Toolbar:</strong> Contains all formatting and processing tools.</li>
-                        <li><strong>Copy Code Button:</strong> Copies the final code with one click.</li>
-                    </ul>
-                    <h2>3. Basic Workflow</h2>
-                    <ol style="list-style-type: decimal; padding-left: 1.5rem;">
-                        <li><strong>Paste Content:</strong> Into the Rich Text Editor.</li>
-                        <li><strong>Edit & Format:</strong> Use the Toolbar buttons for adjustments.</li>
-                        <li><strong>Clean Up:</strong> Click <code>Clean</code> to strip messy code and apply semantic formatting.</li>
-                        <li><strong>Process Images:</strong> Click <code>Process</code> to provide URLs for any pasted images.</li>
-                        <li><strong>Copy Code:</strong> Use the button to copy the final HTML.</li>
-                        <li><strong>Paste into ServiceNow:</strong> Ensure <code>[code]</code> is on its own line at the top.</li>
-                    </ol>
-                    <h2>4. Toolbar Functions</h2>
-                     <table>
-                        <thead><tr><th>Button</th><th>Name</th><th>Function</th></tr></thead>
-                        <tbody>
-                            <tr><td><kbd>B</kbd></td><td><strong>Bold</strong></td><td>Makes text bold using <code>&lt;strong&gt;</code>.</td></tr>
-                            <tr><td><kbd style="font-style: italic;">I</kbd></td><td><strong>Italic</strong></td><td>Makes text italic using <code>&lt;em&gt;</code>.</td></tr>
-                            <tr><td><kbd>A<sub>A</sub></kbd></td><td><strong>Headers</strong></td><td>Dropdown to format text as a Header or Paragraph.</td></tr>
-                            <tr><td><kbd>&#8862;</kbd></td><td><strong>Table</strong></td><td>Dropdown to insert a 2x2 or 3x3 table.</td></tr>
-                            <tr><td><kbd>&#128279;</kbd></td><td><strong>Link</strong></td><td>Turns selected text into a hyperlink.</td></tr>
-                            <tr><td><kbd>&#8634;</kbd></td><td><strong>Undo</strong></td><td>Reverts the last action.</td></tr>
-                            <tr><td><code>Clean</code></td><td><strong>Semantic Cleanup</strong></td><td>Strips non-standard tags/styles and intelligently reformats the content.</td></tr>
-                            <tr><td><code>Process</code></td><td><strong>Process Images</strong></td><td>Initiates the workflow for handling images.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
     </div>
     
@@ -320,29 +241,34 @@
         function scaleApp() {
             let baseWidth, baseHeight;
             const isVertical = window.innerWidth < 1024;
-            if (isVertical) { baseWidth = 1000; baseHeight = 1800; } 
-            else { baseWidth = 1800; baseHeight = 1000; }
+
+            if (isVertical) {
+                baseWidth = 1000;
+                baseHeight = 1800;
+            } else {
+                baseWidth = 1800;
+                baseHeight = 1000;
+            }
+
             mainChassis.style.width = `${baseWidth}px`;
             mainChassis.style.height = `${baseHeight}px`;
+
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
             const scaleX = viewportWidth / baseWidth;
             const scaleY = viewportHeight / baseHeight;
             const scale = Math.min(scaleX, scaleY) * 0.95; 
+            
             scalingContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
         }
         
         window.addEventListener('resize', scaleApp);
         document.addEventListener('DOMContentLoaded', scaleApp);
 
-        // --- All other JavaScript logic is here ---
         const inputArea = document.getElementById('input-area');
         const outputArea = document.getElementById('output-area');
         const toolbar = document.querySelector('.editor-toolbar');
         const copyBtn = document.getElementById('copy-btn');
-        const manualBtn = document.getElementById('manual-btn');
-        const manualPanel = document.getElementById('manual-panel');
-        const manualCloseBtn = document.getElementById('manual-close-btn');
         const imageModal = document.getElementById('image-modal');
         const imageUrlInput = document.getElementById('image-url-input');
         const urlStatus = document.getElementById('url-status');
@@ -359,7 +285,7 @@
         let stripStylesUndoState = '';
         let currentImageElement = null;
         let resolveImagePromise = null;
-        const protectedHeader = `[code]\n<!-- Always TEST ON AN INTERNAL WORK NOTE before use, and after any manual edits. See Kyle (blainek) with issues or questions. -->`;
+        const protectedHeader = `[code]\n<!-- Generated SN-friendly HTML below. Always test via INTERNAL WORK NOTE before first use, and after any MANUAL EDITS. See Kyle (blainek) with issues or questions. -->`;
 
         const debounce = (func, delay) => {
             let timeout;
@@ -371,22 +297,7 @@
             isSyncing = true;
             try {
                 const tempDiv = document.createElement('div');
-                // Use a DOM parser to reliably handle node replacement
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(inputArea.innerHTML, 'text/html');
-                doc.body.querySelectorAll('div').forEach(div => {
-                    const p = document.createElement('p');
-                    // Move children, don't use innerHTML to avoid re-parsing
-                    while (div.firstChild) {
-                        p.appendChild(div.firstChild);
-                    }
-                    if (p.innerHTML.trim() === '' || p.innerHTML.trim() === '<br>') {
-                        p.innerHTML = '&nbsp;'; // Use non-breaking space to maintain height
-                    }
-                    div.replaceWith(p);
-                });
-
-                tempDiv.innerHTML = doc.body.innerHTML;
+                tempDiv.innerHTML = inputArea.innerHTML;
                 forceNewTabOnLinks(tempDiv);
                 const rawHtml = tempDiv.innerHTML;
                 const formattedHtml = prettyPrintHtml(rawHtml);
@@ -410,10 +321,6 @@
         
         inputArea.addEventListener('input', debouncedSyncFromRichText);
         outputArea.addEventListener('input', debouncedSyncFromCode);
-
-        // Manual Panel Toggle
-        manualBtn.addEventListener('click', () => manualPanel.classList.toggle('open'));
-        manualCloseBtn.addEventListener('click', () => manualPanel.classList.remove('open'));
 
         toolbar.addEventListener('click', (e) => {
             e.preventDefault();
@@ -459,7 +366,8 @@
 
         function semanticCleanup(container) {
             const allowedTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'ul', 'ol', 'li', 'a', 'br', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img'];
-            
+            const blockTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'div', 'blockquote', 'table'];
+
             const traverseAndClean = (node) => {
                 for (let i = node.childNodes.length - 1; i >= 0; i--) {
                     const child = node.childNodes[i];
@@ -517,7 +425,7 @@
                 if (el.children.length === 1 && el.firstElementChild.tagName === 'STRONG' && !el.firstElementChild.nextSibling) {
                     replaceTag(el, 'h2');
                 }
-                if ( (el.innerHTML.trim() === '' || el.innerHTML.trim() === '<br>') && el.parentNode) {
+                if ( (el.innerHTML.trim() === '' || el.innerHTML.trim() === '<br>' || el.innerHTML.trim() === '&nbsp;') && el.parentNode) {
                      el.replaceWith(document.createElement('br'));
                 }
             });
