@@ -14,7 +14,7 @@
 
 ServiceNow journal fields (Additional Comments / Work Notes) accept inline HTML wrapped in `[code]...[/code]` tags, but pasting formatted content directly often produces broken markup, stripped styles, oversized image payloads, or unintended `<br>` line-break inflation.
 
-**prettySNow (`pSNo`)** provides a side-by-side visual rich-text workspace and live ServiceNow HTML code editor with built-in Base64 image compression, comment recycling, and single-line "Krunched" export.
+**prettySNow (`pSNo`)** provides a side-by-side visual rich-text workspace and live ServiceNow HTML code editor with built-in Base64 image compression, comment recycling, and single-line "Krunched" export for environments where you want a standalone web or desktop tool (if you can install Chrome extensions and want direct Side Panel syncing with ServiceNow ticket fields, see [**Snowcow**](https://github.com/blainekyle/Snowcow)).
 
 ---
 
